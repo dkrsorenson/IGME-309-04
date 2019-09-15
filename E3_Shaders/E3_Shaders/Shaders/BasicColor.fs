@@ -12,17 +12,17 @@ void main()
 	Fragment = vec4(Color,1);
 	
 	if(ComplementaryColor) {
-		vec3 newColor = Color - vec3(1,1,1);
-		newColor *= -1;
-		Fragment = vec4(newColor,1);
+		vec3 complementColor = Color - vec3(1,1,1);
+		complementColor *= -1;
+		Fragment = vec4(complementColor,1);
 	}
 	
 	if(SolidColor.r != -1.0 && SolidColor.g != -1.0 && SolidColor.b != -1.0){
 		Fragment = vec4(SolidColor, 1);
 		if(ComplementaryColor) {
-			vec3 newColor = SolidColor - vec3(1,1,1);
-			newColor *= -1;
-			Fragment = vec4(newColor,1);
+			vec3 complementColor = SolidColor - vec3(1,1,1);
+			complementColor *= -1;
+			Fragment = vec4(complementColor,1);
 		}
 	}
 	
