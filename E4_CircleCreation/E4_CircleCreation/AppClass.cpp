@@ -22,9 +22,11 @@ void Application::Display(void)
 	// Clear the screen
 	ClearScreen();
 
+	m_pMesh->GenerateCircle(1.0, 120, vector3(1, 1, 1));
+
 	//Render the mesh
 	m_pMesh->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), ToMatrix4(m_qArcBall));
-		
+
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 	

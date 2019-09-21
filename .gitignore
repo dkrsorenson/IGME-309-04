@@ -1,7 +1,6 @@
 # Specific files and folders
 _Binary/*D.exe
 _Binary/*D.cfg
-Z_DELETE
 Debug
 Release
 
@@ -9,6 +8,11 @@ Release
 *.slo
 *.lo
 *.o
+*.pdb
+*.ini
+*.iobj
+*.ipdb
+*.ilk
 
 # Visual Studio specifics
 *.suo
@@ -34,6 +38,7 @@ Release
 *.app
 *.sdf
 *.opensdf
+*.exe
 
 # Interpreter
 *.stackdump
