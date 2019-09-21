@@ -17,6 +17,18 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		then call the AddTri function to generate a_nSubdivision number of faces
 	*/
 
+	vector3 a = vector3(0, 0, 0);
+	double currentAngle = 0;
+	double dividedAngle = 360 / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vector3 b = vector3(a_fRadius * cos(currentAngle * (PI / 180)), a_fRadius * sin((currentAngle) * (PI / 180)), 0);
+		vector3 c = vector3(a_fRadius * cos((currentAngle + dividedAngle) * (PI / 180.0))
+			, a_fRadius * sin((currentAngle + dividedAngle) * (PI / 180)), 0);
+		currentAngle += dividedAngle;
+		AddTri(a, b, c);
+	}
+
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
