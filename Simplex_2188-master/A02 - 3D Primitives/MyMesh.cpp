@@ -121,7 +121,7 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 {
 	// Use the buffer and shader
 	GLuint nShader = m_pShaderMngr->GetShaderID("Basic");
-	glUseProgram(nShader); 
+	glUseProgram(nShader);
 
 	//Bind the VAO of this object
 	glBindVertexArray(m_VAO);
@@ -133,11 +133,11 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 	//Final Projection of the Camera
 	matrix4 m4MVP = a_mProjection * a_mView * a_mModel;
 	glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(m4MVP));
-	
+
 	//Solid
 	glUniform3f(wire, -1.0f, -1.0f, -1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);  
+	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);
 
 	//Wire
 	glUniform3f(wire, 1.0f, 0.0f, 1.0f);
@@ -186,15 +186,15 @@ void MyMesh::GenerateCube(float a_fSize, vector3 a_v3Color)
 	//|  |
 	//0--1
 
-	vector3 point0(-fValue,-fValue, fValue); //0
-	vector3 point1( fValue,-fValue, fValue); //1
-	vector3 point2( fValue, fValue, fValue); //2
+	vector3 point0(-fValue, -fValue, fValue); //0
+	vector3 point1(fValue, -fValue, fValue); //1
+	vector3 point2(fValue, fValue, fValue); //2
 	vector3 point3(-fValue, fValue, fValue); //3
 
-	vector3 point4(-fValue,-fValue,-fValue); //4
-	vector3 point5( fValue,-fValue,-fValue); //5
-	vector3 point6( fValue, fValue,-fValue); //6
-	vector3 point7(-fValue, fValue,-fValue); //7
+	vector3 point4(-fValue, -fValue, -fValue); //4
+	vector3 point5(fValue, -fValue, -fValue); //5
+	vector3 point6(fValue, fValue, -fValue); //6
+	vector3 point7(-fValue, fValue, -fValue); //7
 
 	//F
 	AddQuad(point0, point1, point3, point2);
@@ -275,9 +275,19 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 coneTip = vector3(0, a_fHeight / 2, 0);
+	vector3 circleA = vector3(0, a_fHeight / -2, 0);
+	vector3 circleC, circleB;
+
+	float dividedAngle = PI * 2.0f / a_nSubdivisions; 
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		circleB = vector3(a_fRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle));
+		circleC = vector3(a_fRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle + dividedAngle));
+
+		AddTri(circleA, circleC, circleB);
+		AddTri(circleB, circleC, vector3(0, a_fHeight / 2, 0));
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -299,9 +309,22 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 circleA = vector3(0, a_fHeight / -2, 0);
+	vector3 circleA_H = vector3(0, a_fHeight / 2, 0);
+	vector3 circleB, circleC, circleB_H, circleC_H;
+
+	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		circleB = vector3(a_fRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle));
+		circleC = vector3(a_fRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle + dividedAngle));
+		circleB_H = vector3(a_fRadius * sinf(i * dividedAngle), a_fHeight / 2, a_fRadius * cosf(i * dividedAngle));
+		circleC_H = vector3(a_fRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / 2, a_fRadius * cosf(i * dividedAngle + dividedAngle));
+
+		AddTri(circleA, circleC, circleB);
+		AddTri(circleA_H, circleB_H, circleC_H);
+		AddQuad(circleB, circleC, circleB_H, circleC_H);
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -329,9 +352,28 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 circleA = vector3(0, a_fHeight / -2, 0);
+	vector3 circleA_H = vector3(0, a_fHeight / 2, 0);
+	vector3 innerCircleB, innerCircleC, outerCircleB, outerCircleC, innerCircleB_H, innerCircleC_H, outerCircleB_H, outerCircleC_H;
+
+	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		innerCircleB = vector3(a_fInnerRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fInnerRadius * cosf(i * dividedAngle));
+		innerCircleC = vector3(a_fInnerRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / -2, a_fInnerRadius * cosf(i * dividedAngle + dividedAngle));
+		outerCircleB = vector3(a_fOuterRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fOuterRadius * cosf(i * dividedAngle));
+		outerCircleC = vector3(a_fOuterRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / -2, a_fOuterRadius * cosf(i * dividedAngle + dividedAngle));
+
+		innerCircleB_H = vector3(a_fInnerRadius * sinf(i * dividedAngle), a_fHeight / 2, a_fInnerRadius * cosf(i * dividedAngle));
+		innerCircleC_H = vector3(a_fInnerRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / 2, a_fInnerRadius * cosf(i * dividedAngle + dividedAngle));
+		outerCircleB_H = vector3(a_fOuterRadius * sinf(i * dividedAngle), a_fHeight / 2, a_fOuterRadius * cosf(i * dividedAngle));
+		outerCircleC_H = vector3(a_fOuterRadius * sinf(i * dividedAngle + dividedAngle), a_fHeight / 2, a_fOuterRadius * cosf(i * dividedAngle + dividedAngle));
+
+		AddQuad(outerCircleB, outerCircleC, outerCircleB_H, outerCircleC_H);
+		AddQuad(innerCircleC, innerCircleB, innerCircleC_H, innerCircleB_H);
+		AddQuad(innerCircleB, innerCircleC, outerCircleB, outerCircleC);
+		AddQuad(innerCircleC_H, innerCircleB_H, outerCircleC_H, outerCircleB_H);
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -380,15 +422,30 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
 
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	// Values
+	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+	float halfDividedAngle = dividedAngle / 2;
+	vector3 circleA, circleB, circleC, circleD;
+
+	// Loop
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			circleA = a_fRadius * vector3(cos(j * dividedAngle) * sin(i * halfDividedAngle), cos(i * halfDividedAngle), sin(j * dividedAngle) * sin(i * halfDividedAngle));
+			circleB = a_fRadius * vector3(cos(j * dividedAngle) * sin((i + 1) * halfDividedAngle), cos((i + 1) * halfDividedAngle), sin(j * dividedAngle) * sin((i + 1) * halfDividedAngle));
+			circleC = a_fRadius * vector3(cos((j + 1) * dividedAngle) * sin((i + 1) * halfDividedAngle), cos((i + 1) * halfDividedAngle), sin((j + 1) * dividedAngle) * sin((i + 1) * halfDividedAngle));
+			circleD = a_fRadius * vector3(cos((j + 1) * dividedAngle) * sin(i * halfDividedAngle), cos(i * halfDividedAngle), sin((j + 1) * dividedAngle) * sin(i * halfDividedAngle));
+
+			AddTri(circleA, circleC, circleB);
+			AddTri(circleA, circleD, circleC);
+		}
+	}
+
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
