@@ -279,7 +279,7 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	vector3 circleA = vector3(0, a_fHeight / -2, 0);
 	vector3 circleC, circleB;
 
-	float dividedAngle = PI * 2.0f / a_nSubdivisions; 
+	float dividedAngle = (float)PI * 2.0f / a_nSubdivisions; 
 
 	for (int i = 0; i < a_nSubdivisions; i++) {
 		circleB = vector3(a_fRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle));
@@ -313,7 +313,7 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	vector3 circleA_H = vector3(0, a_fHeight / 2, 0);
 	vector3 circleB, circleC, circleB_H, circleC_H;
 
-	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+	float dividedAngle = (float)PI * 2.0f / a_nSubdivisions;
 
 	for (int i = 0; i < a_nSubdivisions; i++) {
 		circleB = vector3(a_fRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fRadius * cosf(i * dividedAngle));
@@ -356,7 +356,7 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	vector3 circleA_H = vector3(0, a_fHeight / 2, 0);
 	vector3 innerCircleB, innerCircleC, outerCircleB, outerCircleC, innerCircleB_H, innerCircleC_H, outerCircleB_H, outerCircleC_H;
 
-	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+	float dividedAngle = (float)PI * 2.0f / a_nSubdivisions;
 
 	for (int i = 0; i < a_nSubdivisions; i++) {
 		innerCircleB = vector3(a_fInnerRadius * sinf(i * dividedAngle), a_fHeight / -2, a_fInnerRadius * cosf(i * dividedAngle));
@@ -403,9 +403,32 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	float dividedAngleA = (float)PI * 2.0f / a_nSubdivisionsA;
+	float dividedAngleB = (float)PI * 2.0f / a_nSubdivisionsB;
+	float donutRadius = (a_fOuterRadius - a_fInnerRadius) / 2;
+	vector3 cylinderA, cylinderB, cylinderA_2, cylinderB_2;
+
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		vector3 a = a_fInnerRadius * vector3(cosf(i * dividedAngleA), 0, sinf(i * dividedAngleA));
+		vector3 b = a_fInnerRadius * vector3(cosf((i + 1) * dividedAngleA), 0, sinf((i + 1) * dividedAngleA));
+
+		float sqrA = a.x * a.x + a.y * a.y + a.z * a.z;
+		vector3 normA = a * (1.0f / std::sqrt(sqrA));
+
+		float sqrB = b.x * b.x + b.y * b.y + b.z * b.z;
+		vector3 normB = b * (1.0f / std::sqrt(sqrB));
+
+		for (int j = 0; j < a_nSubdivisionsB; j++)
+		{
+			cylinderA = vector3(a.x, sin(j * dividedAngleB) * donutRadius, a.z) + (cos(j * dividedAngleB) * normA * donutRadius);
+			cylinderB = vector3(a.x, sin((j + 1) * dividedAngleB) * donutRadius, a.z) + (cos((j + 1) * dividedAngleB) * normA * donutRadius);
+			cylinderA_2 = vector3(b.x, sin(j * dividedAngleB) * donutRadius, b.z) + (cos(j * dividedAngleB) * normB * donutRadius);
+			cylinderB_2 = vector3(b.x, sin((j + 1) * dividedAngleB) * donutRadius, b.z) + (cos((j + 1) * dividedAngleB) * normB * donutRadius);
+
+			AddQuad(cylinderA_2, cylinderA, cylinderB_2, cylinderB);
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -427,7 +450,7 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Values
-	float dividedAngle = PI * 2.0f / a_nSubdivisions;
+	float dividedAngle = (float)PI * 2.0f / a_nSubdivisions;
 	float halfDividedAngle = dividedAngle / 2;
 	vector3 circleA, circleB, circleC, circleD;
 
