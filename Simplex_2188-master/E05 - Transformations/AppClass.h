@@ -14,7 +14,7 @@ Date: 2017/05
 
 class Application
 {
-	std::vector<MyMesh*> meshList;
+	MyMesh* asteroidMesh;
 	std::vector<vector3> locations;
 	static const int numberOfCubes = 46;
 

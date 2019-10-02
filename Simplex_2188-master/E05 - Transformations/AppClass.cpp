@@ -1,12 +1,9 @@
 #include "AppClass.h"
 void Application::InitVariables(void)
 {
-	// Create the meshes
-	for (int i = 0; i < numberOfCubes; i++) {
-		MyMesh* m_pMesh = new MyMesh();
-		m_pMesh->GenerateCube(1.0f, C_BLACK);
-		meshList.push_back(m_pMesh);
-	}
+	// Create mesh for asteroid dude
+	asteroidMesh = new MyMesh();
+	asteroidMesh->GenerateCube(1.0f, C_BLACK);
 
 	// Full middle row
 	locations.push_back(vector3(0.0f, 0.0f, 0.0f));
@@ -99,7 +96,7 @@ void Application::Display(void)
 		matrix4 m4Model = m4Scale * m4Translate;
 
 		// Render the mesh
-		meshList[i]->Render(m4Projection, m4View, m4Model);
+		asteroidMesh->Render(m4Projection, m4View, m4Model);
 	}
 
 	// Switch the direction once it reaches this value on the screen
@@ -131,21 +128,8 @@ void Application::Display(void)
 }
 void Application::Release(void)
 {
-	//if (m_pMesh != nullptr)
-	//{
-	//	delete m_pMesh;
-	//	m_pMesh = nullptr;
-	//}
-	//SafeDelete(m_pMesh1);
-
-	for each (MyMesh* mesh in meshList)
-	{
-		if (mesh != nullptr) {
-			delete mesh;
-			mesh = nullptr;
-		}
-		SafeDelete(mesh);
-	}
+	// Delete asteroid mesh
+	SafeDelete(asteroidMesh);
 
 	//release GUI
 	ShutdownGUI();
