@@ -21,6 +21,8 @@ class Application
 	
 	MyMesh* m_pMesh = nullptr; //Primitive to display
 	MyMesh* m_pMesh2 = nullptr; //Primitive to display
+	MyMesh* m_pMeshClose = nullptr; //Primitive to display
+	MyMesh* m_pMeshFar = nullptr; //Primitive to display
 	MyCamera* m_pCamera = nullptr; //camera we will use in this application
 
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
