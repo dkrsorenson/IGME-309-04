@@ -14,7 +14,13 @@ class MyCamera
 {
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
-	vector3 m_v3Above = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
+	vector3 m_v3Above = m_v3Position + m_v3Upward; //What is above the camera
+	vector3 m_v3Upward = vector3(0.0f, 1.0f, 0.0f); //What is upwards
+	vector3 m_v3Forward = glm::normalize(m_v3Target - m_v3Position); //What direction is forward
+	vector3 m_v3Sideways = glm::normalize(glm::cross(m_v3Upward, m_v3Forward));  //What direction is forward
+
+	quaternion m_qAngleX;
+	quaternion m_qAngleY;
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -230,6 +236,17 @@ public:
 	OUTPUT: ---
 	*/
 	void MoveSideways(float a_fDistance = 0.1f);
+	/*
+	USAGE: Rotates the camera
+	ARGUMENTS: 
+	float angleX -> angle to rotate on the X axis
+	float angleY -> angle to rotate on the Y axis
+	OUTPUT: ---
+	*/
+	void RotateCamera(float angleX, float angleY);
+
+	/* Calculate the movement vectors */
+	void CalculateVectors();
 };
 
 } //namespace Simplex

@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Dakota Sorenson - drs4149@rit.edu";
 
 	//Set the position and target of the camera
 	//(I'm at [0,0,10], looking at [0,0,0] and up is the positive Y axis)
@@ -29,14 +29,15 @@ void Application::Update(void)
 	ArcBall();
 
 	//Is the first person camera active?
-	CameraRotation();
+	CameraRotation(0.00001f);
 
 	//Add objects to the Manager
 	for (int j = -50; j < 50; j += 2)
 	{
 		for (int i = -50; i < 50; i += 2)
 		{
-			m_pMyMeshMngr->AddConeToRenderList(glm::translate(vector3(i, 0.0f, j)));
+			//m_pMyMeshMngr->AddConeToRenderList(glm::translate(vector3(i, 0.0f, j)));
+			m_pMyMeshMngr->AddCubeToRenderList(glm::translate(vector3(i, 0.0f, j)));
 		}
 	}
 }
