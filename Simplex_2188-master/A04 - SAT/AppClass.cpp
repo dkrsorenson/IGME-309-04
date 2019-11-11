@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Dakota Sorenson - drs4149@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUpward(
@@ -54,11 +54,15 @@ void Application::Update(void)
 	m_pSteve->AddToRenderList();
 	m_pSteveRB->AddToRenderList();
 
+	/*int index = m_pMeshMngr->GeneratePlane(1.0f, C_RED);
+	matrix4 mPlane = glm::translate(vector3(0, 0, 0));
+	m_pMeshMngr->AddPlaneToRenderList(mPlane, C_RED, index);*/
+
 	m_pMeshMngr->Print("Colliding: ");
 	if (bColliding)
 		m_pMeshMngr->PrintLine("YES!", C_RED);
 	else
-		m_pMeshMngr->PrintLine("no", C_YELLOW);
+		m_pMeshMngr->PrintLine("NO", C_YELLOW);
 }
 void Application::Display(void)
 {

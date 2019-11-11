@@ -287,6 +287,164 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
-	//there is no axis test that separates this two objects
+	m_pMeshMngr->Print("SAT: ");
+
+	struct OBB {
+		vector3 centerPoint;   // OBB center point
+		vector3 localAxes[3];  // Local x, y, and z axes
+		vector3 halfWidth;     // Positive halfwidth extents of OBB along each axis
+	};
+
+	OBB a = OBB();
+	a.centerPoint = GetCenterGlobal();
+	a.localAxes[0] = vector3(GetModelMatrix() * vector4(AXIS_X, 0));
+	a.localAxes[1] = vector3(GetModelMatrix() * vector4(AXIS_Y, 0));
+	a.localAxes[2] = vector3(GetModelMatrix() * vector4(AXIS_Z, 0));
+	a.halfWidth = m_v3HalfWidth;
+	
+	OBB b = OBB();
+	b.centerPoint = a_pOther->GetCenterGlobal();
+	b.localAxes[0] = vector3(a_pOther->GetModelMatrix() * vector4(AXIS_X, 0));
+	b.localAxes[1] = vector3(a_pOther->GetModelMatrix() * vector4(AXIS_Y, 0));
+	b.localAxes[2] = vector3(a_pOther->GetModelMatrix() * vector4(AXIS_Z, 0));
+	b.halfWidth = a_pOther->m_v3HalfWidth;
+
+	float ra, rb;
+	matrix3 rotationMatrix, absoluteRotationMatrix;
+
+	// Compute rotation matrix expressing b in a's coordinate frame
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			rotationMatrix[i][j] = glm::dot(a.localAxes[i], b.localAxes[j]);
+
+	// Compute translation vector 
+	vector3 translation = b.centerPoint - a.centerPoint;
+	// Bring translation into a's coordinate frame
+	translation = vector3(glm::dot(translation, a.localAxes[0]), glm::dot(translation, a.localAxes[1]), glm::dot(translation, a.localAxes[2]));
+
+	// Compute common subexpressions. Add in an epsilon term to
+	// counteract arithmetic errors when two edges are parallel and
+	// their cross product is (near) null (see text for details)
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			absoluteRotationMatrix[i][j] = glm::abs(rotationMatrix[i][j]) + glm::epsilon<float>();
+
+	// Test axes L = A0, L = A1, L = A2
+	for (int i = 0; i < 3; i++) {
+		ra = a.halfWidth[i];
+		rb = b.halfWidth[0] * absoluteRotationMatrix[i][0] + b.halfWidth[1] * absoluteRotationMatrix[i][1] + b.halfWidth[2] * absoluteRotationMatrix[i][2];
+		if (glm::abs(translation[i]) > ra + rb) {
+			if (i == 0) {
+				m_pMeshMngr->PrintLine("AX", C_CYAN);
+				return eSATResults::SAT_AX;
+			}
+			else if (i == 1) {
+				m_pMeshMngr->PrintLine("AY", C_CYAN);
+				return eSATResults::SAT_AY;
+			}
+			else if (i == 2) {
+				m_pMeshMngr->PrintLine("AZ", C_CYAN);
+				return eSATResults::SAT_AZ;
+			}
+		}
+	}
+
+	// Test axes L = B0, L = B1, L = B2
+	for (int i = 0; i < 3; i++) {
+		ra = a.halfWidth[0] * absoluteRotationMatrix[0][i] + a.halfWidth[1] * absoluteRotationMatrix[1][i] + a.halfWidth[2] * absoluteRotationMatrix[2][i];
+		rb = b.halfWidth[i];
+		if (glm::abs(translation[0] * rotationMatrix[0][i] + translation[1] * rotationMatrix[1][i] + translation[2] * rotationMatrix[2][i]) > ra + rb) {
+			if (i == 0) {
+				m_pMeshMngr->PrintLine("BX", C_CYAN);
+				return eSATResults::SAT_BX;
+			}
+			else if (i == 1) {
+				m_pMeshMngr->PrintLine("BY", C_CYAN);
+				return eSATResults::SAT_BY;
+			}
+			else if (i == 2) {
+				m_pMeshMngr->PrintLine("BZ", C_CYAN);
+				return eSATResults::SAT_BZ;
+			}
+		}
+	}
+
+	// Test axis L = A0 x B0
+	ra = a.halfWidth[1] * absoluteRotationMatrix[2][0] + a.halfWidth[2] * absoluteRotationMatrix[1][0];
+	rb = b.halfWidth[1] * absoluteRotationMatrix[0][2] + b.halfWidth[2] * absoluteRotationMatrix[0][1];
+	if (glm::abs(translation[2] * rotationMatrix[1][0] - translation[1] * rotationMatrix[2][0]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AXxBX", C_CYAN);
+		return eSATResults::SAT_AXxBX;
+	}
+
+	// Test axis L = A0 x B1
+	ra = a.halfWidth[1] * absoluteRotationMatrix[2][1] + a.halfWidth[2] * absoluteRotationMatrix[1][1];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[0][2] + b.halfWidth[2] * absoluteRotationMatrix[0][0];
+	if (glm::abs(translation[2] * rotationMatrix[1][1] - translation[1] * rotationMatrix[2][1]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AXxBY", C_CYAN);
+		return eSATResults::SAT_AXxBY;
+	}
+
+	// Test axis L = A0 x B2
+	ra = a.halfWidth[1] * absoluteRotationMatrix[2][2] + a.halfWidth[2] * absoluteRotationMatrix[1][2];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[0][1] + b.halfWidth[1] * absoluteRotationMatrix[0][0];
+	if (glm::abs(translation[2] * rotationMatrix[1][2] - translation[1] * rotationMatrix[2][2]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AXxBZ", C_CYAN);
+		return eSATResults::SAT_AXxBZ;
+	}
+
+	// Test axis L = A1 x B0
+	ra = a.halfWidth[0] * absoluteRotationMatrix[2][0] + a.halfWidth[2] * absoluteRotationMatrix[0][0];
+	rb = b.halfWidth[1] * absoluteRotationMatrix[1][2] + b.halfWidth[2] * absoluteRotationMatrix[1][1];
+
+	if (glm::abs(translation[0] * rotationMatrix[2][0] - translation[2] * rotationMatrix[0][0]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AYxBX", C_CYAN);
+		return eSATResults::SAT_AYxBX;
+	}
+
+	// Test axis L = A1 x B1
+	ra = a.halfWidth[0] * absoluteRotationMatrix[2][1] + a.halfWidth[2] * absoluteRotationMatrix[0][1];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[1][2] + b.halfWidth[2] * absoluteRotationMatrix[1][0];
+	if (glm::abs(translation[0] * rotationMatrix[2][1] - translation[2] * rotationMatrix[0][1]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AYxBY", C_CYAN);
+		return eSATResults::SAT_AYxBY;
+	}
+
+	// Test axis L = A1 x B2
+	ra = a.halfWidth[0] * absoluteRotationMatrix[2][2] + a.halfWidth[2] * absoluteRotationMatrix[0][2];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[1][1] + b.halfWidth[1] * absoluteRotationMatrix[1][0];
+	if (glm::abs(translation[0] * rotationMatrix[2][2] - translation[2] * rotationMatrix[0][2]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AYxBZ", C_CYAN);
+		return eSATResults::SAT_AYxBZ;
+	}
+
+	// Test axis L = A2 x B0
+	ra = a.halfWidth[0] * absoluteRotationMatrix[1][0] + a.halfWidth[1] * absoluteRotationMatrix[0][0];
+	rb = b.halfWidth[1] * absoluteRotationMatrix[2][2] + b.halfWidth[2] * absoluteRotationMatrix[2][1];
+	if (glm::abs(translation[1] * rotationMatrix[0][0] - translation[0] * rotationMatrix[1][0]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AZxBX", C_CYAN);
+		return eSATResults::SAT_AZxBX;
+	}
+
+	// Test axis L = A2 x B1
+	ra = a.halfWidth[0] * absoluteRotationMatrix[1][1] + a.halfWidth[1] * absoluteRotationMatrix[0][1];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[2][2] + b.halfWidth[2] * absoluteRotationMatrix[2][0];
+	if (glm::abs(translation[1] * rotationMatrix[0][1] - translation[0] * rotationMatrix[1][1]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AZxBY", C_CYAN);
+		return eSATResults::SAT_AZxBY;
+	}
+
+	// Test axis L = A2 x B2
+	ra = a.halfWidth[0] * absoluteRotationMatrix[1][2] + a.halfWidth[1] * absoluteRotationMatrix[0][2];
+	rb = b.halfWidth[0] * absoluteRotationMatrix[2][1] + b.halfWidth[1] * absoluteRotationMatrix[2][0];
+	if (glm::abs(translation[1] * rotationMatrix[0][2] - translation[0] * rotationMatrix[1][2]) > ra + rb) {
+		m_pMeshMngr->PrintLine("AZxBZ", C_CYAN);
+		return eSATResults::SAT_AZxBZ;
+	}
+
+	m_pMeshMngr->PrintLine("NONE", C_YELLOW);
+
+	//m_pMeshMngr->ClearRenderList();
+	// There is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
 }
